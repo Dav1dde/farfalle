@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Farfalle</title>
+        <style>
+#code {
+    font-family: "SF Mono", "Fira Mono", Monaco, Menlo, Consolas, monospace;
+    background-color: #222;
+    font-size: 13px;
+    color: #dadada;
+}
+#code ol {
+    position: relative;
+    counter-reset: lineNumber;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#code li {
+    padding-left: 35px;
+    white-space: pre;
+    pointer-events: none;
+}
+#code li:before {
+    counter-increment: lineNumber;
+    content: counter(lineNumber);
+    text-align: right;
+    width: 25px;
+    position: absolute;
+    display: inline-block;
+    left: 0;
+    color: #636363;
+    pointer-events: all;
+    cursor: pointer;
+}
+#code li:target {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+#code li:target:before {
+    color: gold;
+}
+        </style>
+        <style>{{ css|safe }}</style>
+    </head>
+    <body id="code">
+        <ol>
+            {% for line in source %} 
+            <li id="L{{ loop.index }}">{% if is_escaped %}{{ line|safe }}{% else %}{{ line }}{% endif %}</li>
+            {% endfor %}
+        </ol>
+    <script>
+        function onLineClick(e) {
+            window.location.hash = e.target.id;
+        }
+        document.querySelectorAll('#code li').forEach(li => li.onclick = onLineClick);
+    </script>
+    </body>
+</html>
