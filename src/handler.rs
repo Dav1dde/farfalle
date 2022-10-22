@@ -118,7 +118,7 @@ pub async fn upload(
                 .file_name()
                 .and_then(|f| f.rsplit('.').next())
                 .filter(|ext| !ext.is_empty())
-                .map(|x| x.to_owned());
+                .map(|x| x.to_lowercase());
 
             let data = field.bytes().await.map_err(|_| Error::BadRequest)?;
             if data.is_empty() {
