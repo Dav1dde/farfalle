@@ -1,18 +1,20 @@
 use crate::{
-    highlight::Highlighted, storage, templates, utils::Protocol, Error, Language, PasteId, Result,
-    StorageExtension, Theme, ThemeExtension, WithExtension, MAX_FILE_SIZE,
+    highlight::Highlighted,
+    storage, templates,
+    utils::{File, Protocol},
+    Error, Language, PasteId, Result, StorageExtension, Theme, ThemeExtension, WithExtension,
+    MAX_FILE_SIZE,
 };
 use axum::{
     extract::{ContentLengthLimit, Host, Multipart, Path},
-    http::StatusCode,
-    response::{Html, IntoResponse},
+    response::{Html, IntoResponse, Response},
     Extension,
 };
 use hyper::{header, HeaderMap};
 use tokio::io::AsyncReadExt;
 
-pub async fn root() -> &'static str {
-    "Farfalle"
+pub async fn root() -> impl IntoResponse {
+    Html(templates::Index.to_string())
 }
 
 pub async fn view(
@@ -33,11 +35,11 @@ pub async fn view(
         .await
         .map_err(|_| Error::StorageError)?;
 
-    let response = match infer::get(&data) {
-        Some(ft) => view_bin(ft, data)?.into_response(),
-        None => {
-            let content = String::from_utf8(data).map_err(|_| Error::StorageError)?;
-            view_paste(&theme, content, ext)?.into_response()
+    let response = match File::infer(&data).map_err(|_| Error::StorageError)? {
+        File::Binary(_, ft) => view_bin(ft, data)?.into_response(),
+        File::Text(_, _) => {
+            // safe because File::Text validates for UTF-8
+            view_paste(&theme, unsafe { String::from_utf8_unchecked(data) }, ext)?.into_response()
         }
     };
 
@@ -115,37 +117,31 @@ pub async fn upload(
             let file_ext = field
                 .file_name()
                 .and_then(|f| f.rsplit('.').next())
+                .filter(|ext| !ext.is_empty())
                 .map(|x| x.to_owned());
 
-            let (data, guess_ext) = validate(field.bytes().await.map_err(|_| Error::BadRequest)?)?;
+            let data = field.bytes().await.map_err(|_| Error::BadRequest)?;
+            if data.is_empty() {
+                continue;
+            }
+
+            let guess_ext = File::infer(&data)?.extension();
 
             let id = storage.save(data).await.map_err(|_| Error::StorageError)?;
+            let path = file_ext
+                .as_deref()
+                .or(guess_ext)
+                .map(|ext| format!("{id}.{ext}"))
+                .unwrap_or_else(|| id.into());
 
-            let r = if let Some(ext) = file_ext.as_deref().or(guess_ext) {
-                format!("{protocol}://{host}/{id}.{ext}\n")
-            } else {
-                format!("{protocol}://{host}/{id}\n")
-            };
-            return Ok((StatusCode::OK, r));
+            let response = Response::builder()
+                .status(303)
+                .header("Location", &path)
+                .body(format!("{protocol}://{host}/{path}\n"))
+                .unwrap();
+            return Ok(response);
         }
     }
 
     Err(Error::MissingFile)
-}
-
-fn validate(bytes: bytes::Bytes) -> Result<(bytes::Bytes, Option<&'static str>)> {
-    let ext = match infer::get(&bytes) {
-        Some(ft) => match ft.matcher_type() {
-            infer::MatcherType::Image => Some(ft.extension()),
-            _ => return Err(Error::UnsupportedFile(ft.mime_type())),
-        },
-        None => {
-            std::str::from_utf8(&bytes)
-                .map(|_| ())
-                .map_err(|_| Error::NotUtf8)?;
-            None
-        }
-    };
-
-    Ok((bytes, ext))
 }

@@ -1,6 +1,46 @@
 use axum::extract::{FromRequest, RequestParts};
 use hyper::{header, HeaderMap};
+use infer::MatcherType;
 use serde::{de::value::StrDeserializer, Deserialize};
+
+#[derive(Copy, Clone)]
+pub enum File<'a> {
+    Binary(&'a [u8], infer::Type),
+    Text(&'a str, Option<infer::Type>),
+}
+
+impl<'a> File<'a> {
+    pub fn infer(data: &'a [u8]) -> crate::Result<Self> {
+        let ft = if let Some(ft) = infer::get(data) {
+            if !ft.mime_type().starts_with("text/") {
+                if !matches!(ft.matcher_type(), MatcherType::Image) {
+                    return Err(crate::Error::UnsupportedFile(ft.mime_type()));
+                }
+
+                return Ok(Self::Binary(data, ft));
+            }
+
+            Some(ft)
+        } else {
+            None
+        };
+
+        let data = std::str::from_utf8(data).map_err(|_| crate::Error::NotUtf8)?;
+
+        if data.trim().is_empty() {
+            return Err(crate::Error::Empty);
+        }
+
+        Ok(Self::Text(data, ft))
+    }
+
+    pub fn extension(&self) -> Option<&'static str> {
+        match self {
+            Self::Binary(_, ft) => Some(ft.extension()),
+            Self::Text(_, ft) => ft.map(|ft| ft.extension()),
+        }
+    }
+}
 
 pub struct WithExtension<T>(pub T, pub Option<String>);
 

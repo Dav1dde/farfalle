@@ -26,6 +26,7 @@ impl Language {
             "cpp" => Some(Self::Cpp),
             "hpp" => Some(Self::Cpp),
             "js" => Some(Self::Javascript),
+            "mjs" => Some(Self::Javascript),
             "json" => Some(Self::Json),
             "py" => Some(Self::Python),
             "rs" => Some(Self::Rust),

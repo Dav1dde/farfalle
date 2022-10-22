@@ -15,6 +15,9 @@ pub enum Error {
     #[error("file contents are not recognized and not valid UTF-8")]
     NotUtf8,
 
+    #[error("empty content")]
+    Empty,
+
     #[error("unsupported file type '{0}'")]
     UnsupportedFile(&'static str),
 
@@ -29,6 +32,7 @@ impl Error {
             Self::BadRequest => StatusCode::BAD_REQUEST,
             Self::StorageError => StatusCode::INTERNAL_SERVER_ERROR,
             Self::NotUtf8 => StatusCode::BAD_REQUEST,
+            Self::Empty => StatusCode::BAD_REQUEST,
             Self::UnsupportedFile(..) => StatusCode::BAD_REQUEST,
             Self::MissingFile => StatusCode::BAD_REQUEST,
         }

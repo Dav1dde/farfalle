@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Farfalle</title>
+        <style>
+html {
+    color-scheme: dark;
+}
+
+body {
+    font-family: "SF Mono", "Fira Mono", Monaco, Menlo, Consolas, monospace;
+    background-color: #222;
+    font-size: 13px;
+    color: #dadada;
+    margin: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+header {
+    font-size: 23px;
+    color: gold;
+    text-decoration: underline;
+}
+
+main {
+    flex: 1 1 auto;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+textarea {
+    height: 70vh;
+    resize: none;
+    color: inherit;
+    background-color: inherit;
+    outline: none;
+    padding: 5px 8px;
+    border-color: #7e7753;
+}
+
+button, input[type=file]::file-selector-button {
+    padding: 8px 30px;
+    border: none;
+    border-radius: 5px;
+    background-color: #6b6547;
+    color: inherit;
+    outline: none;
+}
+
+button:active, input[type=file]::file-selector-button:active {
+	position:relative;
+	top:1px;
+}
+
+#previewContainer {
+    display: none;
+}
+
+#preview {
+    object-fit: contain;
+    object-position: left;
+    max-width: 100%;
+    max-height: 70vh;
+    margin: 15px 0;
+}
+        </style>
+    </head>
+    <body>
+        <header>
+            Farfalle
+        </header>
+        <main>
+            <form enctype="multipart/form-data" method="POST">
+                <input type="file" name="file" id="file" accept="text/*,image/*" />
+                <textarea name="file" spellcheck="false" autofocus id="code"></textarea>
+                <div id="previewContainer"><img id="preview" /></div>
+                <div>
+                    <button type="submit">Create</button>
+                </div>
+            </form>
+        </main>
+    <script>
+        const fileInput = document.getElementById('file');
+        const imagePreviewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('preview');
+        const codeArea = document.getElementById('code');
+
+        function onFileChange() {
+            codeArea.style.display = '';
+            codeArea.readOnly = "false";
+            imagePreviewContainer.style.display = 'none';
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.type.startsWith('image/')) {
+                    imagePreviewContainer.style.display = 'block';
+                    codeArea.style.display = 'none';
+                    imagePreview.src = URL.createObjectURL(fileInput.files[0]);
+                    imagePreview.onload = () => URL.revokeObjectURL(imagePreview.src);
+                } else {
+                    codeArea.readOnly = "true";
+                    const reader = new FileReader();
+                    reader.onload = () => codeArea.value = reader.result;
+                    reader.readAsText(file);
+                }
+            }
+        }
+
+        window.addEventListener('pageshow', () => {
+            fileInput.value = null;
+        })
+
+        document.addEventListener('paste', event => {
+            const files = event.clipboardData.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                onFileChange();
+            }
+        });
+
+        fileInput.addEventListener('change', () => onFileChange());
+    </script>
+    </body>
+</html>
