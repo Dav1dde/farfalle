@@ -8,6 +8,7 @@ use tree_sitter_highlight::{Highlight, HighlightConfiguration, Highlighter, Html
 
 #[derive(Clone, Copy, Debug)]
 pub enum Language {
+    Bash,
     C,
     Cpp,
     Javascript,
@@ -30,6 +31,8 @@ impl Language {
             "json" => Some(Self::Json),
             "py" => Some(Self::Python),
             "rs" => Some(Self::Rust),
+            "sh" => Some(Self::Bash),
+            "zsh" => Some(Self::Bash),
             "ts" => Some(Self::Typescript),
             "tsx" => Some(Self::TypescriptX),
             _ => None,
@@ -38,6 +41,13 @@ impl Language {
 
     fn config(&self) -> HighlightConfiguration {
         match self {
+            Self::Bash => HighlightConfiguration::new(
+                tree_sitter_bash::language(),
+                tree_sitter_bash::HIGHLIGHT_QUERY,
+                "",
+                "",
+            )
+            .unwrap(),
             Self::C => HighlightConfiguration::new(
                 tree_sitter_c::language(),
                 tree_sitter_c::HIGHLIGHT_QUERY,
