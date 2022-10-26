@@ -228,6 +228,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "once_cell",
+ "pepegsitter",
  "rand",
  "serde",
  "serde_json",
@@ -236,15 +237,7 @@ dependencies = [
  "tower",
  "tracing",
  "tracing-subscriber",
- "tree-sitter-bash",
- "tree-sitter-c",
- "tree-sitter-cpp",
  "tree-sitter-highlight",
- "tree-sitter-javascript",
- "tree-sitter-json",
- "tree-sitter-python",
- "tree-sitter-rust",
- "tree-sitter-typescript",
 ]
 
 [[package]]
@@ -667,6 +660,17 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-sys",
+]
+
+[[package]]
+name = "pepegsitter"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab643402c212f285541ccd3cd84178b46c4296982b9bfb0f8d09729df3022fc1"
+dependencies = [
+ "cc",
+ "tree-sitter",
+ "tree-sitter-highlight",
 ]
 
 [[package]]
@@ -1122,33 +1126,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tree-sitter-bash"
-version = "0.19.0"
-source = "git+https://github.com/tree-sitter/tree-sitter-bash.git?rev=f1a86d3#f1a86d3cc5aeeb67e0e52442e893af7f813025b4"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-c"
-version = "0.20.2"
-source = "git+https://github.com/tree-sitter/tree-sitter-c.git?rev=7175a6d#7175a6dd5fc1cee660dce6fe23f6043d75af424a"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-cpp"
-version = "0.20.0"
-source = "git+https://github.com/tree-sitter/tree-sitter-cpp.git?rev=d5e90fb#d5e90fba898f320db48d81ddedd78d52c67c1fed"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
 name = "tree-sitter-highlight"
 version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1156,52 +1133,6 @@ checksum = "042342584c5a7a0b833d9fc4e2bdab3f9868ddc6c4b339a1e01451c6720868bc"
 dependencies = [
  "regex",
  "thiserror",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-javascript"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2490fab08630b2c8943c320f7b63473cbf65511c8d83aec551beb9b4375906ed"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-json"
-version = "0.20.0"
-source = "git+https://github.com/tree-sitter/tree-sitter-json.git?rev=7307675#73076754005a460947cafe8e03a8cf5fa4fa2938"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-python"
-version = "0.20.2"
-source = "git+https://github.com/tree-sitter/tree-sitter-python.git?rev=de221ec#de221eccf9a221f5b85474a553474a69b4b5784d"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-rust"
-version = "0.20.1"
-source = "git+https://github.com/tree-sitter/tree-sitter-rust.git?rev=47b061c#47b061c1e1ba3a7e9c2f450363a50e87de3f7c61"
-dependencies = [
- "cc",
- "tree-sitter",
-]
-
-[[package]]
-name = "tree-sitter-typescript"
-version = "0.20.1"
-source = "git+https://github.com/tree-sitter/tree-sitter-typescript.git?rev=0ab9d99#0ab9d99867435a7667c5548a6617a6bf73dbd830"
-dependencies = [
- "cc",
  "tree-sitter",
 ]
 

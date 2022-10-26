@@ -1,6 +1,4 @@
-FROM alpine
-
-RUN apk add --no-cache libc6-compat libstdc++
+FROM gcr.io/distroless/cc
 
 ARG BINARY
 COPY ${BINARY} /entrypoint

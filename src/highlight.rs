@@ -11,99 +11,76 @@ pub enum Language {
     Bash,
     C,
     Cpp,
+    Css,
+    D,
+    Go,
+    Haskell,
+    Html,
+    Java,
     Javascript,
     Json,
+    Lua,
     Python,
     Rust,
+    Toml,
     Typescript,
-    TypescriptX,
+    Tsx,
+    Yaml,
 }
 
 impl Language {
     pub fn from_extension(ext: &str) -> Option<Self> {
         match ext {
+            "sh" => Some(Self::Bash),
+            "zsh" => Some(Self::Bash),
             "c" => Some(Self::C),
             "h" => Some(Self::C),
             "cpp" => Some(Self::Cpp),
             "hpp" => Some(Self::Cpp),
+            "css" => Some(Self::Css),
+            "d" => Some(Self::D),
+            "go" => Some(Self::Go),
+            "hs" => Some(Self::Haskell),
+            "lhs" => Some(Self::Haskell),
+            "html" => Some(Self::Html),
+            "xhtml" => Some(Self::Html),
+            "java" => Some(Self::Java),
             "js" => Some(Self::Javascript),
+            "jsx" => Some(Self::Javascript),
             "mjs" => Some(Self::Javascript),
             "json" => Some(Self::Json),
+            "lua" => Some(Self::Lua),
             "py" => Some(Self::Python),
+            "pyw" => Some(Self::Python),
             "rs" => Some(Self::Rust),
-            "sh" => Some(Self::Bash),
-            "zsh" => Some(Self::Bash),
+            "toml" => Some(Self::Toml),
             "ts" => Some(Self::Typescript),
-            "tsx" => Some(Self::TypescriptX),
+            "tsx" => Some(Self::Tsx),
+            "yaml" => Some(Self::Yaml),
             _ => None,
         }
     }
 
     fn config(&self) -> HighlightConfiguration {
         match self {
-            Self::Bash => HighlightConfiguration::new(
-                tree_sitter_bash::language(),
-                tree_sitter_bash::HIGHLIGHT_QUERY,
-                "",
-                "",
-            )
-            .unwrap(),
-            Self::C => HighlightConfiguration::new(
-                tree_sitter_c::language(),
-                tree_sitter_c::HIGHLIGHT_QUERY,
-                "",
-                "",
-            )
-            .unwrap(),
-            Self::Cpp => HighlightConfiguration::new(
-                tree_sitter_cpp::language(),
-                tree_sitter_cpp::HIGHLIGHT_QUERY,
-                "",
-                "",
-            )
-            .unwrap(),
-            Self::Javascript => HighlightConfiguration::new(
-                tree_sitter_javascript::language(),
-                tree_sitter_javascript::HIGHLIGHT_QUERY,
-                tree_sitter_javascript::INJECTION_QUERY,
-                tree_sitter_javascript::LOCALS_QUERY,
-            )
-            .unwrap(),
-            Self::Json => HighlightConfiguration::new(
-                tree_sitter_json::language(),
-                tree_sitter_json::HIGHLIGHT_QUERY,
-                "",
-                "",
-            )
-            .unwrap(),
-            Self::Python => HighlightConfiguration::new(
-                tree_sitter_python::language(),
-                tree_sitter_python::HIGHLIGHT_QUERY,
-                "",
-                "",
-            )
-            .unwrap(),
-            Self::Rust => HighlightConfiguration::new(
-                tree_sitter_rust::language(),
-                tree_sitter_rust::HIGHLIGHT_QUERY,
-                "",
-                "",
-            )
-            .unwrap(),
-            Self::Typescript => HighlightConfiguration::new(
-                tree_sitter_typescript::language_typescript(),
-                tree_sitter_typescript::HIGHLIGHT_QUERY,
-                "",
-                tree_sitter_typescript::LOCALS_QUERY,
-            )
-            .unwrap(),
-            Self::TypescriptX => HighlightConfiguration::new(
-                tree_sitter_typescript::language_tsx(),
-                tree_sitter_typescript::HIGHLIGHT_QUERY,
-                "",
-                tree_sitter_typescript::LOCALS_QUERY,
-            )
-            .unwrap(),
+            Self::Bash => pepegsitter::bash::highlight(),
+            Self::C => pepegsitter::c::highlight(),
+            Self::Cpp => pepegsitter::cpp::highlight(),
+            Self::Css => pepegsitter::css::highlight(),
+            Self::D => pepegsitter::d::highlight(),
+            Self::Go => pepegsitter::go::highlight(),
+            Self::Haskell => pepegsitter::haskell::highlight(),
+            Self::Html => pepegsitter::html::highlight(),
+            Self::Java => pepegsitter::java::highlight(),
+            Self::Javascript => pepegsitter::javascript::highlight(),
+            Self::Json => pepegsitter::json::highlight(),
+            Self::Lua => pepegsitter::lua::highlight(),
+            Self::Python => pepegsitter::python::highlight(),
+            Self::Rust => pepegsitter::rust::highlight(),
+            Self::Toml => pepegsitter::toml::highlight(),
+            Self::Typescript => pepegsitter::typescript::highlight(),
+            Self::Tsx => pepegsitter::tsx::highlight(),
+            Self::Yaml => pepegsitter::yaml::highlight(),
         }
     }
 }

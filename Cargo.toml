@@ -30,12 +30,4 @@ elegant-departure = { version = "0.2", features = ["tokio" ] }
 itertools = "0.10"
 
 tree-sitter-highlight = "0.20"
-
-tree-sitter-bash = { git = "https://github.com/tree-sitter/tree-sitter-bash.git", rev = "f1a86d3" }
-tree-sitter-c = { git = "https://github.com/tree-sitter/tree-sitter-c.git", rev = "7175a6d" }
-tree-sitter-cpp = { git = "https://github.com/tree-sitter/tree-sitter-cpp.git", rev = "d5e90fb" }
-tree-sitter-python = { git = "https://github.com/tree-sitter/tree-sitter-python.git", rev = "de221ec" }
-tree-sitter-javascript = "0.20"
-tree-sitter-json = { git = "https://github.com/tree-sitter/tree-sitter-json.git", rev = "7307675" }
-tree-sitter-rust = { git = "https://github.com/tree-sitter/tree-sitter-rust.git", rev = "47b061c" }
-tree-sitter-typescript = { git = "https://github.com/tree-sitter/tree-sitter-typescript.git", rev = "0ab9d99" }
+pepegsitter = "0.1"
