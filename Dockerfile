@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/cc
+FROM gcr.io/distroless/static
 
 ARG BINARY
 COPY ${BINARY} /entrypoint
