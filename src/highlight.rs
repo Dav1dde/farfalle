@@ -1,4 +1,7 @@
-use std::{collections::BTreeMap, sync::Arc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 
 use axum::Extension;
 use itertools::Itertools;
@@ -6,93 +9,86 @@ use once_cell::sync::OnceCell;
 use serde::Deserialize;
 use tree_sitter_highlight::{Highlight, HighlightConfiguration, Highlighter, HtmlRenderer};
 
-#[derive(Clone, Copy, Debug)]
-pub enum Language {
-    Bash,
-    C,
-    Cpp,
-    Css,
-    D,
-    Go,
-    Haskell,
-    Html,
-    Java,
-    Javascript,
-    Json,
-    Lua,
-    Python,
-    Rust,
-    Toml,
-    Typescript,
-    Tsx,
-    Yaml,
+macro_rules! impl_language {
+    ($(($lang:ident, $mod:ident, $($ext:expr),*),)+) => {
+        #[derive(Clone, Copy, Debug)]
+        pub enum Language {
+            $($lang,)*
+        }
+
+        impl Language {
+            pub fn as_str(&self) -> &'static str {
+                match self {
+                    $(Self::$lang => stringify!($mod),)*
+                }
+            }
+
+            pub fn from_extension(ext: &str) -> Option<Self> {
+                match ext {
+                    $($($ext => Some(Self::$lang),)*)+
+                    _ => None
+                }
+            }
+
+            fn config(&self) -> HighlightConfiguration {
+                match self {
+                    $(Self::$lang => pepegsitter::$mod::highlight(),)*
+                }
+            }
+
+            fn all() -> &'static [Self] {
+                &[$(Self::$lang,)*]
+            }
+        }
+    };
 }
 
-impl Language {
-    pub fn from_extension(ext: &str) -> Option<Self> {
-        match ext {
-            "sh" => Some(Self::Bash),
-            "zsh" => Some(Self::Bash),
-            "c" => Some(Self::C),
-            "h" => Some(Self::C),
-            "cpp" => Some(Self::Cpp),
-            "hpp" => Some(Self::Cpp),
-            "css" => Some(Self::Css),
-            "d" => Some(Self::D),
-            "go" => Some(Self::Go),
-            "hs" => Some(Self::Haskell),
-            "lhs" => Some(Self::Haskell),
-            "html" => Some(Self::Html),
-            "xhtml" => Some(Self::Html),
-            "java" => Some(Self::Java),
-            "js" => Some(Self::Javascript),
-            "jsx" => Some(Self::Javascript),
-            "mjs" => Some(Self::Javascript),
-            "json" => Some(Self::Json),
-            "lua" => Some(Self::Lua),
-            "py" => Some(Self::Python),
-            "pyw" => Some(Self::Python),
-            "rs" => Some(Self::Rust),
-            "toml" => Some(Self::Toml),
-            "ts" => Some(Self::Typescript),
-            "tsx" => Some(Self::Tsx),
-            "yaml" => Some(Self::Yaml),
-            _ => None,
-        }
-    }
-
-    fn config(&self) -> HighlightConfiguration {
-        match self {
-            Self::Bash => pepegsitter::bash::highlight(),
-            Self::C => pepegsitter::c::highlight(),
-            Self::Cpp => pepegsitter::cpp::highlight(),
-            Self::Css => pepegsitter::css::highlight(),
-            Self::D => pepegsitter::d::highlight(),
-            Self::Go => pepegsitter::go::highlight(),
-            Self::Haskell => pepegsitter::haskell::highlight(),
-            Self::Html => pepegsitter::html::highlight(),
-            Self::Java => pepegsitter::java::highlight(),
-            Self::Javascript => pepegsitter::javascript::highlight(),
-            Self::Json => pepegsitter::json::highlight(),
-            Self::Lua => pepegsitter::lua::highlight(),
-            Self::Python => pepegsitter::python::highlight(),
-            Self::Rust => pepegsitter::rust::highlight(),
-            Self::Toml => pepegsitter::toml::highlight(),
-            Self::Typescript => pepegsitter::typescript::highlight(),
-            Self::Tsx => pepegsitter::tsx::highlight(),
-            Self::Yaml => pepegsitter::yaml::highlight(),
-        }
-    }
+impl_language! {
+    (Bash, bash, "sh", "zsh"),
+    (C, c, "c", "h"),
+    (Cpp, cpp, "cpp", "hpp"),
+    (Css, css, "css"),
+    (D, d, "d"),
+    (Go, go, "go"),
+    (Haskell, haskell, "hs", "lhs"),
+    (Html, html, "html", "xhtml"),
+    (Java, java, "java"),
+    (JavaScript, javascript, "js", "jsx", "mjs"),
+    (Json, json, "json"),
+    (Lua, lua, "lua"),
+    (Python, python, "py", "pyw"),
+    (Rust, rust, "rs"),
+    (Toml, toml, "toml"),
+    (Typescript, typescript, "ts"),
+    (Tsx, tsx, "tsx"),
+    (Yaml, yaml, "yaml"),
 }
 
-#[derive(Debug, Deserialize)]
 pub struct Theme {
     name: String,
-    #[serde(rename = "theme")]
     styles: Styles,
+    configs: HashMap<&'static str, HighlightConfiguration>,
 }
 
 impl Theme {
+    fn new(name: String, styles: Styles) -> Self {
+        let configs = Language::all()
+            .iter()
+            .map(|lang| {
+                let mut config = lang.config();
+                config.configure(&styles.highlight_names);
+
+                (lang.as_str(), config)
+            })
+            .collect();
+
+        Self {
+            name,
+            styles,
+            configs,
+        }
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -100,11 +96,12 @@ impl Theme {
     pub fn highlight(&self, language: Language, source: &str) -> Option<Highlighted> {
         let mut highlighter = Highlighter::new();
 
-        let mut config = language.config();
-        config.configure(&self.styles.highlight_names);
+        let config = self.configs.get(language.as_str()).unwrap();
 
         let mut highlights = highlighter
-            .highlight(&config, source.as_bytes(), None, |_| None)
+            .highlight(config, source.as_bytes(), None, |lang| {
+                self.configs.get(lang)
+            })
             .ok()?;
 
         let mut renderer = HtmlRenderer::new();
@@ -121,6 +118,22 @@ impl Theme {
 
     pub fn into_extension(self) -> Extension<Arc<Self>> {
         Extension(Arc::new(self))
+    }
+}
+
+impl<'de> serde::de::Deserialize<'de> for Theme {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct T {
+            name: String,
+            theme: Styles,
+        }
+
+        let T { name, theme } = T::deserialize(deserializer)?;
+        Ok(Self::new(name, theme))
     }
 }
 
